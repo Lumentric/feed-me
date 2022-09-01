@@ -1,9 +1,11 @@
 # Release Notes for Feed Me 4.x
 
-## Unreleased
+## 4.5.4 - 2022-09-01
 
 ### Fixed
-- Fixed a PHP error that could occur when using the `--continue-on-error` flag on the `feed-me/feeds/queue` CLI command. 
+- Fixed a PHP error that could occur when using the `--continue-on-error` flag on the `feed-me/feeds/queue` CLI command.
+- Fixed [a bug](https://github.com/craftcms/feed-me/issues/1184) that was preventing two different Matrix block types from being imported in a same feed
+- Fixed [a type error](https://github.com/craftcms/feed-me/pull/1070) when importing array fields of Matrix blocks.
 
 ## 4.5.3 - 2022-05-31
 

@@ -4,6 +4,8 @@
 
 Feed Me is a Craft plugin for super-simple importing of content, either once-off or at regular intervals. With support for XML, RSS, ATOM, CSV or JSON feeds, you'll be able to import your content as Entries, Categories, Craft Commerce Products (and variants), and more.
 
+This fork includes fixes for issues that are not yet resolved in the original repo.
+
 ## Requirements
 
 This plugin requires Craft CMS 3.5.0 or later.
