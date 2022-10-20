@@ -9,6 +9,7 @@ use craft\feedme\Plugin;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
+use craft\fields\Categories as CategoryField;
 use DateTime;
 use Throwable;
 
@@ -197,6 +198,14 @@ class DataHelper
 
         foreach ($content as $key => $newValue) {
             $existingValue = Hash::get($fields, $key);
+
+            if (key_exists($key, $fields)) {
+                $field = Craft::$app->getFields()->getFieldByHandle($key);
+                // Fix comparison for nested categories
+                if ($field && $field instanceof CategoryField) {
+                    $newValue = $field->normalizeValue($newValue, $element)->id;
+                }
+            }
 
             // If date value, make sure to cast it as a string to compare
             if ($newValue instanceof DateTime || DateTimeHelper::isIso8601($newValue)) {
