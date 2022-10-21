@@ -218,13 +218,17 @@ class DataHelper
             }
 
             // Check for simple fields first
-            if (self::_compareSimpleValues($fields, $key, $existingValue, $newValue)) {
+            if (key_exists($key, $fields) && self::_compareSimpleValues($existingValue, $newValue)) {
                 unset($trackedChanges[$key]);
                 continue;
             }
 
             // Then check for simple attributes
-            $existingValue = Hash::get($attributes, $key);
+            $attrKey = $key;
+            if ($attrKey === 'parent' && !key_exists($attrKey, $attributes)) {
+                $attrKey = 'parentId';
+            }
+            $existingValue = Hash::get($attributes, $attrKey);
 
             // Check for attribute groups - more than simple asset
             if ($key === 'groups') {
@@ -237,7 +241,7 @@ class DataHelper
                 $existingValue = $groups;
             }
 
-            if (self::_compareSimpleValues($fields, $key, $existingValue, $newValue)) {
+            if (key_exists($attrKey, $attributes) && self::_compareSimpleValues($existingValue, $newValue)) {
                 unset($trackedChanges[$key]);
                 continue;
             }
@@ -313,17 +317,15 @@ class DataHelper
     }
 
     /**
-     * @param $fields
-     * @param $key
      * @param $firstValue
      * @param $secondValue
      * @return bool
      */
-    private static function _compareSimpleValues($fields, $key, $firstValue, $secondValue): bool
+    private static function _compareSimpleValues($firstValue, $secondValue): bool
     {
         /** @noinspection TypeUnsafeComparisonInspection */
         // Should probably do a strict check, but doing this for backwards compatibility.
-        if (Hash::check($fields, $key) && ($firstValue == $secondValue)) {
+        if ($firstValue == $secondValue) {
             // If this is a string, check the lengths
             if (is_string($firstValue) && is_string($secondValue)) {
                 // String length comparison to take into account "637" and "0637"
