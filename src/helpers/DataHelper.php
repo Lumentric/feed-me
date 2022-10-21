@@ -10,6 +10,7 @@ use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\fields\Categories as CategoryField;
+use craft\fields\Matrix as MatrixField;
 use DateTime;
 use Throwable;
 
@@ -199,11 +200,15 @@ class DataHelper
         foreach ($content as $key => $newValue) {
             $existingValue = Hash::get($fields, $key);
 
+            // TODO: refactor this, define some field-specific comparators and one general one that will do the `_compareSimpleValues`
             if (key_exists($key, $fields)) {
                 $field = Craft::$app->getFields()->getFieldByHandle($key);
-                // Fix comparison for nested categories
-                if ($field && $field instanceof CategoryField) {
+                if ($field instanceof CategoryField) {
+                    // Fix comparison for nested categories
                     $newValue = $field->normalizeValue($newValue, $element)->id;
+                } elseif ($field instanceof MatrixField && !self::matrixContentChanged($newValue, $existingValue)) {
+                    unset($trackedChanges[$key]);
+                    continue;
                 }
             }
 
@@ -310,6 +315,24 @@ class DataHelper
         }
 
         return $diff;
+    }
+
+    /**
+     * Checks if imported data introduces any new blocks or changes to existing blocks.
+     * If all blocks from the import are already exist, this method will return false.
+     * @param $newContent
+     * @param $existingContent
+     * @return bool
+     */
+    private static function matrixContentChanged($newContent, $existingContent): bool
+    {
+        if (!is_array($newContent) || !is_array($existingContent)) return true;
+
+        foreach ($newContent as $newBlock) {
+            if (!in_array($newBlock, $existingContent)) return true;
+        }
+
+        return false;
     }
 
     /**
