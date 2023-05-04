@@ -369,6 +369,12 @@ class Process extends Component
             }
         }
 
+        // For TP we should not update title of an existing element
+        if (getenv('INSTANCE') === 'tetrapak' && $existingElement && key_exists('title', $attributeData)) {
+            Plugin::info('Removing title key from attribute data for an existing element');
+            unset($attributeData['title']);
+        }
+
         // Set the attributes for the element
         $element->setAttributes($attributeData, false);
 
