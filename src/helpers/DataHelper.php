@@ -270,7 +270,7 @@ class DataHelper
                 // Fix comparison for nested categories
                 // There are cases when the `$newValue` only contain a leaf category whereas the `$existingValue` will include all the ancestors. Normalization will find ancestors in this case.
                 if ($field instanceof CategoryField) {
-                    $newValue = $field->normalizeValue($newValue, $element)->id;;
+                    $newValue = $field->normalizeValue($newValue, $element)->id;
                 }
             }
 
