@@ -6,13 +6,16 @@ use Cake\Utility\Hash;
 use Craft;
 use craft\base\Element as BaseElement;
 use craft\elements\Category as CategoryElement;
+use craft\elements\conditions\ElementConditionInterface;
 use craft\feedme\base\Field;
 use craft\feedme\base\FieldInterface;
 use craft\feedme\helpers\DataHelper;
 use craft\feedme\Plugin;
 use craft\fields\Categories as CategoriesField;
 use craft\helpers\Db;
+use craft\helpers\ElementHelper;
 use craft\helpers\Json;
+use craft\services\ElementSources;
 
 /**
  *
@@ -90,9 +93,19 @@ class Categories extends Field implements FieldInterface
         $node = Hash::get($this->fieldInfo, 'node');
         $nodeKey = null;
 
+        $groupId = null;
+        $customSource = null;
         // Get source id's for connecting
-        [, $groupUid] = explode(':', $source);
-        $groupId = Db::idByUid('{{%categorygroups}}', $groupUid);
+        if (str_starts_with($source, 'custom:')) {
+            $customSource = ElementHelper::findSource(CategoryElement::class, $source, ElementSources::CONTEXT_FIELD);
+            // make sure $create is nullified; we don't want to create categories for custom sources
+            // because of ensuring all the conditions are met
+            // for example, if there's condition level == 2, then how do we ensure that and (more importantly) how do we choose a parent
+            $create = null;
+        } else {
+            [, $groupUid] = explode(':', $source);
+            $groupId = Db::idByUid('{{%categorygroups}}', $groupUid);
+        }
 
         $foundElements = [];
 
@@ -111,7 +124,7 @@ class Categories extends Field implements FieldInterface
 
             // special provision for falling back on default BaseRelationField value
             // https://github.com/craftcms/feed-me/issues/1195
-            if (trim($dataValue) === '') {
+            if (DataHelper::isArrayValueEmpty($value)) {
                 $foundElements = $default;
                 break;
             }
@@ -139,14 +152,33 @@ class Categories extends Field implements FieldInterface
                 $columnName = Craft::$app->getFields()->oldFieldColumnPrefix . $match;
             }
 
+            if ($groupId) {
+                $criteria['groupId'] = $groupId;
+            }
             $criteria['status'] = null;
-            $criteria['groupId'] = $groupId;
             $criteria['limit'] = $limit;
             $criteria['where'] = ['=', $columnName, $dataValue];
 
             Craft::configure($query, $criteria);
 
-            Plugin::info('Search for existing category with query `{i}`', ['i' => Json::encode($criteria)]);
+            if (!empty($customSource)) {
+                $conditionsService = Craft::$app->getConditions();
+                /** @var ElementConditionInterface $sourceCondition */
+                $sourceCondition = $conditionsService->createCondition($customSource['condition']);
+                $sourceCondition->modifyQuery($query);
+            }
+
+            // we're getting the criteria from conditions now too, so they are not included in the $criteria array;
+            // so, we get all the query criteria, filter out any empty or boolean ones and only show the ones that look to be filled out
+            $showCriteria = $criteria;
+            $allCriteria = $query->getCriteria();
+            foreach ($allCriteria as $key => $criterion) {
+                if (!empty($criterion) && !is_bool($criterion)) {
+                    $showCriteria[$key] = $criterion;
+                }
+            }
+
+            Plugin::info('Search for existing category with query `{i}`', ['i' => Json::encode($showCriteria)]);
 
             $ids = $query->ids();
 
@@ -173,6 +205,15 @@ class Categories extends Field implements FieldInterface
         }
 
         $foundElements = array_unique($foundElements);
+
+        // if the field has maintainHierarchy on, and we're supposed to compare content,
+        // we need to fill in the gaps, so that we know if the content has truly changed
+        // https://github.com/craftcms/feed-me/issues/1418
+        if ($foundElements && $maintainHierarchy && Plugin::$plugin->service->getConfig('compareContent', $this->feed['id'])) {
+            $elements = CategoryElement::find()->id($foundElements)->all();
+            Craft::$app->getStructures()->fillGapsInElements($elements);
+            $foundElements = array_map(fn($element) => $element->id, $elements);
+        }
 
         // Protect against sending an empty array - removing any existing elements
         if (!$foundElements) {

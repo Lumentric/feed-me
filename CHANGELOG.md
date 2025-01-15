@@ -1,5 +1,61 @@
 # Release Notes for Feed Me
 
+## 5.9.0 - 2024-11-26
+
+- Added the `assetDownloadGuzzle` config setting which defaults to `false`. When it is set to `true`, Feed Me will use Guzzle to download assets instead curl directly. ([#1549](https://github.com/craftcms/feed-me/pull/1549))
+- Fixed a bug where importing matching Categories could go awry if the source of the field is set to a group and not a custom source. ([#1550](https://github.com/craftcms/feed-me/pull/1550))
+
+## 5.8.2 - 2024-10-15
+
+- When duplicating a feed, a new passkey is generated instead of using the passkey on the original feed. ([#1534](https://github.com/craftcms/feed-me/pull/1534))
+
+## 5.8.1 - 2024-10-09
+
+- Fixed a bug where Lightswitch fields would not import correctly when nested in a Matrix or Super Table field. ([#1529](https://github.com/craftcms/feed-me/pull/1529))
+- Fixed a bug where Commerce Variant attributes were not respecting the `parseTwig` config setting. ([#1326](https://github.com/craftcms/feed-me/pull/1326))
+
+## 5.8.0 - 2024-09-25
+
+- Added support for importing into relational fields that have custom sources selected. ([#1504](https://github.com/craftcms/feed-me/pull/1504))
+- Fixed a bug that could occur when uploading files to an Assets field from an external URL and a new filename is provided, but we can't determine the remote file's extension. ([#1506](https://github.com/craftcms/feed-me/pull/1506))
+- Fixed a bug where the fields available to map within a given Entries field could not match the fields from that Entry type's field layout. ([#1503](https://github.com/craftcms/feed-me/pull/1503))
+
+## 5.7.0 - 2024-08-14
+
+- Added a `feed-me/logs/clear` console command to clear database logs.
+- Fixed a bug where the logs table would not load with a large number of logs. 
+
+## 5.6.2 - 2024-08-14
+
+- Fixed a bug where un-redacted environment variables were being logged to the database. ([#1491](https://github.com/craftcms/feed-me/issues/1491))
+
+## 5.6.1 - 2024-07-18
+
+- Fixed a PHP error that could occur when importing Assets that had a missing filename. ([#1481](https://github.com/craftcms/feed-me/pull/1481))
+- Fixed a bug that could occur when importing into a Dropdown field that did not support empty strings as a value and the feed had an empty string. ([#1484](https://github.com/craftcms/feed-me/pull/1484))
+
+## 5.6.0 - 2024-07-09
+
+> [!WARNING]
+> Feed Me now logs to the database by default. This may lead to an increase in database size if logs are not cleared. To customize this behavior, see [Customizing Logs](README.md#customizing-logs).
+> Consider configuring the `logging` setting to `'error'` to reduce logs.
+
+- Fixed a bug where simple value comparisons would fail if the value you were checking against was missing. ([#1473](https://github.com/craftcms/feed-me/pull/1473))
+- Fixed a bug where assets imported into a Matrix field with “Use this filename for assets created from URL” set would duplicate the first asset across all Matrix blocks. ([#1472](https://github.com/craftcms/feed-me/pull/1472))
+- Fixed a bug where the “Disable missing elements globally” setting was only working for the primary site. ([#1474](https://github.com/craftcms/feed-me/pull/1474))
+- Fixed an error that would occur when running a feed with the backup database setting enabled, when Craft's `backupCommand` was set to false. ([#1461](https://github.com/craftcms/feed-me/pull/1461))
+- Logs now use the default log component, and are stored in the database. [#1344](https://github.com/craftcms/feed-me/issues/1344)
+
+## 5.5.0 - 2024-05-26
+
+- You can now match elements in a feed via their Asset IDs, instead of just the filename. ([#1327](https://github.com/craftcms/feed-me/pull/1327))
+- Fixed a PHP error that could occur when importing multiple values into a relational field in some scenarios. ([#1436](https://github.com/craftcms/feed-me/pull/1436))
+- Fixed a bug where mapping a relational field that has the “maintain hierarchy” setting enabled would give false positives when comparing the contents of the field. ([#1442](https://github.com/craftcms/feed-me/pull/1442))
+- Fixed a bug that could occur when importing numeric values into a multi-select field.  ([#1444](https://github.com/craftcms/feed-me/pull/1444))
+- Fixed a bug where a feed’s title could leak when processing a direct feed and there was a validation error. ([#1445](https://github.com/craftcms/feed-me/pull/1445))
+- Fixed a bug where Date fields could cause false positives when comparing their values. ([#1447](https://github.com/craftcms/feed-me/pull/1447))
+- Fixed a MySQL error that could occur when you have a _lot_ of field mapping data. ([#1446](https://github.com/craftcms/feed-me/pull/1446))
+
 ## 5.4.0 - 2024-02-25
 
 - Feed Me now requires Craft 4.6 or later.

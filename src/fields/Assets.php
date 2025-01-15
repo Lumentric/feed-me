@@ -83,11 +83,12 @@ class Assets extends Field implements FieldInterface
         $limit = Hash::get($this->field, 'settings.maxRelations');
         $targetSiteId = Hash::get($this->field, 'settings.targetSiteId');
         $feedSiteId = Hash::get($this->feed, 'siteId');
+        $match = Hash::get($this->fieldInfo, 'options.match', 'filename');
         $upload = Hash::get($this->fieldInfo, 'options.upload');
         $conflict = Hash::get($this->fieldInfo, 'options.conflict');
         $fields = Hash::get($this->fieldInfo, 'fields');
         $node = Hash::get($this->fieldInfo, 'node');
-        $nodeKey = null;
+        $nodeKey = $this->getArrayKeyFromNode($node);
 
         // Get folder id's for connecting
         $folderIds = $this->field->resolveDynamicPathToFolderId($this->element);
@@ -117,6 +118,10 @@ class Assets extends Field implements FieldInterface
         $base64ToUpload = [];
 
         $filenamesFromFeed = $upload ? DataHelper::fetchArrayValue($this->feedData, $this->fieldInfo, 'options.filenameNode') : null;
+        if ($filenamesFromFeed) {
+            // see https://github.com/craftcms/feed-me/issues/1471
+            $filenamesFromFeed = array_splice($filenamesFromFeed, $nodeKey, count($value));
+        }
 
         // Fire an 'onAssetFilename' event
         $event = new AssetFilenameEvent([
@@ -145,7 +150,7 @@ class Assets extends Field implements FieldInterface
 
             // special provision for falling back on default BaseRelationField value
             // https://github.com/craftcms/feed-me/issues/1195
-            if (trim($dataValue) === '') {
+            if (DataHelper::isArrayValueEmpty($value)) {
                 $foundElements = $default;
                 break;
             }
@@ -176,7 +181,14 @@ class Assets extends Field implements FieldInterface
                     $urlsToUpload[$key]['value'] = $dataValue;
 
                     if (isset($filenamesFromFeed[$key])) {
-                        $filename = $filenamesFromFeed[$key] . '.' . AssetHelper::getRemoteUrlExtension($urlsToUpload[$key]['value']);
+                        $filename = $filenamesFromFeed[$key];
+
+                        // if we can determine the extension of the remote file, use that extension
+                        $remoteUrlExtension = AssetHelper::getRemoteUrlExtension($urlsToUpload[$key]['value']);
+                        if (!empty($remoteUrlExtension)) {
+                            $filename .= '.' . $remoteUrlExtension;
+                        }
+
                         $urlsToUpload[$key]['newFilename'] = $filename;
                     } else {
                         $filename = AssetHelper::getRemoteUrlFilename($dataValue);
@@ -190,7 +202,13 @@ class Assets extends Field implements FieldInterface
                 $criteria['folderId'] = $folderIds;
                 $criteria['kind'] = $settings['allowedKinds'];
                 $criteria['limit'] = $limit;
-                $criteria['filename'] = $filename;
+
+                if ($match === 'id') {
+                    $criteria['id'] = $dataValue;
+                } else {
+                    $criteria['filename'] = $filename;
+                }
+
                 $criteria['includeSubfolders'] = true;
 
                 Craft::configure($query, $criteria);
@@ -209,8 +227,6 @@ class Assets extends Field implements FieldInterface
                     Plugin::info('Skipping asset upload (already exists).');
                 }
             }
-
-            $nodeKey = $this->getArrayKeyFromNode($node);
         }
 
         if ($upload) {
