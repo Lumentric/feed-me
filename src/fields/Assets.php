@@ -92,27 +92,26 @@ class Assets extends Field implements FieldInterface
         $node = Hash::get($this->fieldInfo, 'node');
         $nodeKey = $this->getArrayKeyFromNode($node);
 
-        // Get folder id's for connecting
-        $folderIds = $this->field->resolveDynamicPathToFolderId($this->element);
+        // Specify in which folders to look for existing assets, specify the default upload location first
+        $folderIds = [$this->field->resolveDynamicPathToFolderId($this->element)];
 
-        if (!$folderIds) {
-            if (is_array($folders)) {
-                foreach ($folders as $folder) {
-                    [, $uid] = explode(':', $folder);
-                    $volumeId = Db::idByUid(Table::VOLUMES, $uid);
+        // If source volumes are configured for the field, use them
+        if (is_array($folders)) {
+            foreach ($folders as $folder) {
+                [, $uid] = explode(':', $folder);
+                $volumeId = Db::idByUid(Table::VOLUMES, $uid);
 
-                    // Get all folders for this volume
-                    $ids = (new Query())
-                        ->select(['id'])
-                        ->from([Table::VOLUMEFOLDERS])
-                        ->where(['volumeId' => $volumeId])
-                        ->column();
+                // Get all folders for this volume
+                $ids = (new Query())
+                    ->select(['id'])
+                    ->from([Table::VOLUMEFOLDERS])
+                    ->where(['volumeId' => $volumeId])
+                    ->column();
 
-                    $folderIds = array_merge($folderIds, $ids);
-                }
-            } elseif ($folders === '*') {
-                $folderIds = null;
+                $folderIds = array_merge($folderIds, $ids);
             }
+        } elseif ($folders === '*') {
+            $folderIds = null;
         }
 
         $foundElements = [];
