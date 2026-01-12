@@ -92,28 +92,26 @@ class Assets extends Field implements FieldInterface
         $node = Hash::get($this->fieldInfo, 'node');
         $nodeKey = $this->getArrayKeyFromNode($node);
 
-        // by default, don't narrow down by folder IDs
-        $folderIds = null;
-        // if the field is restricted to a specific folder, use only that folder ID
-        if ($this->field->restrictLocation) {
-            $folderIds = $this->field->resolveDynamicPathToFolderId($this->element);
-        } else {
-            // otherwise get folder IDs in all the volumes that are allowed by the field
-            if (is_array($folders)) {
-                foreach ($folders as $folder) {
-                    [, $uid] = explode(':', $folder);
-                    $volumeId = Db::idByUid(Table::VOLUMES, $uid);
+        // Specify in which folders to look for existing assets, specify the default upload location first
+        $folderIds = [$this->field->resolveDynamicPathToFolderId($this->element)];
 
-                    // Get all folders for this volume
-                    $ids = (new Query())
-                        ->select(['id'])
-                        ->from([Table::VOLUMEFOLDERS])
-                        ->where(['volumeId' => $volumeId])
-                        ->column();
+        // If source volumes are configured for the field, use them
+        if (is_array($folders)) {
+            foreach ($folders as $folder) {
+                [, $uid] = explode(':', $folder);
+                $volumeId = Db::idByUid(Table::VOLUMES, $uid);
 
-                    $folderIds = array_merge($folderIds ?? [], $ids);
-                }
+                // Get all folders for this volume
+                $ids = (new Query())
+                    ->select(['id'])
+                    ->from([Table::VOLUMEFOLDERS])
+                    ->where(['volumeId' => $volumeId])
+                    ->column();
+
+                $folderIds = array_merge($folderIds, $ids);
             }
+        } elseif ($folders === '*') {
+            $folderIds = null;
         }
 
         $foundElements = [];
