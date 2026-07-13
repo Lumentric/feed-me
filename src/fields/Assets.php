@@ -222,6 +222,7 @@ class Assets extends Field implements FieldInterface
 
                 $ids = $query->ids();
                 $foundElements = array_merge($foundElements, $ids);
+                $urlsToUpload[$key]['foundElementId'] = !empty($ids) ? reset($ids) : null;
 
                 Plugin::info('Found `{i}` existing assets: `{j}`', ['i' => count($foundElements), 'j' => Json::encode($foundElements)]);
 
@@ -236,23 +237,34 @@ class Assets extends Field implements FieldInterface
 
         if ($upload) {
             if ($urlsToUpload) {
-                foreach ($urlsToUpload as $item) {
+                foreach ($urlsToUpload as $key => $item) {
+                    $folderId = null;
+                    if (
+                        ($conflict == AssetElement::SCENARIO_REPLACE || $conflict == AssetElement::SCENARIO_CREATE) &&
+                        !empty($item['foundElementId'])
+                    ) {
+                        $existingAsset = Craft::$app->getElements()->getElementById($item['foundElementId'], AssetElement::class);
+                        $folderId = $existingAsset?->folderId;
+                    }
+
                     $uploadedElements = AssetHelper::fetchRemoteImage(
                         [$item['value']],
                         $this->fieldInfo,
                         $this->feed,
                         $this->field,
                         $this->element,
-                        null,
+                        $folderId,
                         $item['newFilename']
                     );
-                    $foundElements = array_merge($foundElements, $uploadedElements);
+                    array_splice($foundElements, $key, 0, $uploadedElements);
                 }
             }
 
             if ($base64ToUpload) {
-                $uploadedElements = AssetHelper::createBase64Image($base64ToUpload, $this->fieldInfo, $this->feed, $this->field, $this->element);
-                $foundElements = array_merge($foundElements, $uploadedElements);
+                foreach ($base64ToUpload as $key => $base64) {
+                    $uploadedElement = AssetHelper::createBase64Image([$base64], $this->fieldInfo, $this->feed, $this->field, $this->element);
+                    array_splice($foundElements, $key, 0, $uploadedElement);
+                }
             }
         }
 

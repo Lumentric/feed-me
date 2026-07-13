@@ -1,5 +1,36 @@
 # Release Notes for Feed Me
 
+## 6.14.0 - 2026-07-08
+
+- Fixed a [high-severity](https://github.com/craftcms/cms/security/policy#severity--remediation) Remote Code Execution (RCE) vulnerability when the when `parseTwig` config setting is enabled. (HCKRT-1508)
+- Fixed a [high-severity](https://github.com/craftcms/cms/security/policy#severity--remediation) SSRF vulnerability. (HCKRT-1507)
+
+## 6.13.0.1 - 2026-05-28
+
+- Fixed changelog.
+
+## 6.13.0 - 2026-05-27
+
+- Feed Me now requires Craft 5.8.0+.
+- Added the ability to import into a Content Block type field, including inside of a one-level deep Matrix field. ([#1711](https://github.com/craftcms/feed-me/pull/1711))
+- Added the ability to map Commerce Products and Variants relation fields, so they work like other relation fields. ([#1736](https://github.com/craftcms/feed-me/pull/1736))
+- You can now match Commerce Product values based on a default SKU. ([#1736](https://github.com/craftcms/feed-me/pull/1736))
+- Improved the performance of importing relational fields in my scenarios. ([#1743](https://github.com/craftcms/feed-me/pull/1743))
+- Feed logs now display the data and time in the user’s preferred timezone. ([#1744](https://github.com/craftcms/feed-me/pull/1744))
+- Fixed a bug where importing addresses might fail if the address had an expected format. ([#1737](https://github.com/craftcms/feed-me/pull/1737))
+- Fixed a bug where, if you queued up multiple feeds and one of them didn’t have any data, the feeds after it wouldn’t get processed. ([#1738](https://github.com/craftcms/feed-me/pull/1738))
+- Fixed a bug where feed logging would get the previous feed’s name under certain circumstances. ([#1738](https://github.com/craftcms/feed-me/pull/1738))
+- Fixed a bug where importing assets could apply metadata to the incorrect assets in the feed are URLs, or they are base64 encoded data. ([#1739](https://github.com/craftcms/feed-me/pull/1739))
+- Fixed a bug where importing custom fields on an Address might not be imported. ([#1741](https://github.com/craftcms/feed-me/pull/1741))
+- Fixes a bug where importing into an Entries field with `maintainHierarchy` enabled would lose previously found entries if they existed on a site other than the current one. ([#1742](https://github.com/craftcms/feed-me/pull/1742))
+
+## 6.12.0 - 2026-05-20
+
+- Added the `allowPathInPaginationUrl` config setting. ([#1710](https://github.com/craftcms/feed-me/pull/1710))
+- Fixed a bug where imported entries weren’t getting post dates on Craft 5.10+. ([#1735](https://github.com/craftcms/feed-me/issues/1735))
+- Fixed a bug where new assets could be created when “Replace existing asset” was selected for an Assets field. ([#1704](https://github.com/craftcms/feed-me/issues/1704)) 
+- Fixed a bug where some nested Matrix entries weren’t getting imported. ([#1707](https://github.com/craftcms/feed-me/issues/1707)) 
+
 ## 6.11.0 - 2025-10-30
 
 - Multiple feeds queued via a single CLI command are now processed sequentially, even if they’re batched. ([#1695](https://github.com/craftcms/feed-me/issues/1695))
