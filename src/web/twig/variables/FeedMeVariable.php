@@ -9,6 +9,7 @@ use craft\feedme\helpers\FieldHelper;
 use craft\feedme\models\FeedModel;
 use craft\feedme\Plugin;
 use craft\fieldlayoutelements\assets\AltField;
+use craft\fieldlayoutelements\assets\AssetTitleField;
 use craft\fields\BaseRelationField;
 use craft\fields\Categories;
 use craft\fields\Checkboxes;
@@ -214,6 +215,7 @@ class FeedMeVariable extends ServiceLocator
             'craft\ckeditor\Field',
             'craft\redactor\Field',
             AltField::class,
+            AssetTitleField::class,
         ];
 
         return in_array($class, $supportedSubFields, true);

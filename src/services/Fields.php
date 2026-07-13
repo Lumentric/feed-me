@@ -17,6 +17,7 @@ use craft\feedme\fieldlayoutelements\addresses\AddressField;
 use craft\feedme\fieldlayoutelements\addresses\FullNameField;
 use craft\feedme\fieldlayoutelements\addresses\LatLongField;
 use craft\feedme\fieldlayoutelements\assets\Alt;
+use craft\feedme\fieldlayoutelements\assets\Title;
 use craft\feedme\fields\Addresses;
 use craft\feedme\fields\Assets;
 use craft\feedme\fields\CalendarEvents;
@@ -230,6 +231,7 @@ class Fields extends Component
                 LatLongField::class, // lat/long field within addresses
                 FullNameField::class, // full name field within addresses
                 Alt::class,
+                Title::class,
             ],
         ]);
 
