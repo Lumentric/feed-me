@@ -261,6 +261,11 @@ class DataHelper
             $attributes['enabledForSite'] = $element->getEnabledForSite();
         }
 
+        // When importing subcategories input data contains `parent` key, but $attributes define it as `parentId` which results in subcategories being saved on every import
+        if (isset($attributes['parentId'])) {
+            $attributes['parent'] = $element->getParentId();
+        }
+
         foreach ($content as $key => $newValue) {
             $existingValue = Hash::get($fields, $key);
 
